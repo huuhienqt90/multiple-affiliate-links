@@ -27,8 +27,8 @@ class MultipleAffiliateLinks
      */
     public function scripts()
     {
-        wp_enqueue_script( 'zinpee-plugin-scripts', plugin_dir_url( __FILE__ ) . 'dist/js/app.js', array('jquery'), '1.0' );
-        wp_enqueue_style( 'zinpee-plugin-styles', plugin_dir_url( __FILE__ ) . 'dist/css/app.css', array(), '1.0' );
+        wp_enqueue_script( 'mal-plugin-scripts', plugin_dir_url( __FILE__ ) . 'dist/js/app.js', array('jquery'), '1.0' );
+        wp_enqueue_style( 'mal-plugin-styles', plugin_dir_url( __FILE__ ) . 'dist/css/app.css', array(), '1.0' );
     }
 
     /**
@@ -39,9 +39,9 @@ class MultipleAffiliateLinks
      */
     public function addProductTab($tabs)
     {
-        $tabs['zpaffiliate_type'] = array(
+        $tabs['mal_type'] = array(
             'label'    => __( 'Affiliate Links', 'multiple-affiliate-links' ),
-            'target' => 'zpaffiliate_type_product_options',
+            'target' => 'mal_type_product_options',
             'class'  => 'show_if_external',
         );
 
@@ -56,9 +56,9 @@ class MultipleAffiliateLinks
     public function addProductTabContent()
     {
         global $product_object;
-        $zData = maybe_unserialize($product_object->get_meta( '_zin_pee_data', true ));
+        $malData = maybe_unserialize($product_object->get_meta( '_mal_data', true ));
         ?>
-        <div id='zpaffiliate_type_product_options' class='panel woocommerce_options_panel'>
+        <div id='mal_type_product_options' class='panel woocommerce_options_panel'>
             <div class='options_group'>
                 <table class="zinpee-table" cellpadding="0" cellspacing="0" style="width: 100%;">
                     <thead>
@@ -71,22 +71,22 @@ class MultipleAffiliateLinks
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if ($zData && count($zData)): ?>
-                        <?php $i = 0; foreach ($zData as $item): ?>
+                    <?php if ($malData && count($malData)): ?>
+                        <?php $i = 0; foreach ($malData as $item): ?>
                         <tr>
                             <td>
-                                <select name="zpdata[<?php echo $i; ?>][type]">
-                                    <option value="lazada" <?php selected('lazada', $item['type']); ?>>Lazada</option>
-                                    <option value="tiki" <?php selected('tiki', $item['type']); ?>>Tiki</option>
-                                    <option value="sendo" <?php selected('sendo', $item['type']); ?>>Sendo</option>
-                                    <option value="shopee" <?php selected('shopee', $item['type']); ?>>Shopee</option>
-                                    <option value="dienmayxanh" <?php selected('dienmayxanh', $item['type']); ?>>Điện máy xanh</option>
-                                    <option value="thegioididong" <?php selected('thegioididong', $item['type']); ?>>Thế giới di động</option>
+                                <select name="mal_data[<?php esc_attr_e($i); ?>][type]">
+                                    <option value="lazada" <?php selected('lazada', esc_attr($item['type'])); ?>>Lazada</option>
+                                    <option value="tiki" <?php selected('tiki', esc_attr($item['type'])); ?>>Tiki</option>
+                                    <option value="sendo" <?php selected('sendo', esc_attr($item['type'])); ?>>Sendo</option>
+                                    <option value="shopee" <?php selected('shopee', esc_attr($item['type'])); ?>>Shopee</option>
+                                    <option value="dienmayxanh" <?php selected('dienmayxanh', esc_attr($item['type'])); ?>>Điện máy xanh</option>
+                                    <option value="thegioididong" <?php selected('thegioididong', esc_attr($item['type'])); ?>>Thế giới di động</option>
                                 </select>
                             </td>
-                            <td><input type="text" name="zpdata[<?php echo $i; ?>][price]" value="<?php echo $item['price']; ?>"></td>
-                            <td><input type="text" name="zpdata[<?php echo $i; ?>][url]" value="<?php echo $item['url']; ?>"></td>
-                            <td><input type="text" name="zpdata[<?php echo $i; ?>][buttonText]" value="<?php echo @$item['buttonText']; ?>"></td>
+                            <td><input type="text" name="mal_data[<?php esc_attr_e($i); ?>][price]" value="<?php esc_attr_e($item['price']); ?>"></td>
+                            <td><input type="text" name="mal_data[<?php esc_attr_e($i); ?>][url]" value="<?php esc_attr_e($item['url']); ?>"></td>
+                            <td><input type="text" name="mal_data[<?php esc_attr_e($i); ?>][buttonText]" value="<?php esc_attr_e($item['buttonText']); ?>"></td>
                             <td style="width: 50px;"><button class="button-delete"><?php _e('Delete', 'multiple-affiliate-links'); ?></button></td>
                         </tr>
                         <?php $i++; endforeach; ?>
@@ -109,8 +109,8 @@ class MultipleAffiliateLinks
      */
     public function saveAffiliateSettings($post)
     {
-        $price = isset( $_POST['zpdata'] ) ? serialize($_POST['zpdata'] ) : '';
-        update_post_meta( $post->id, '_zin_pee_data', $price );
+        $price = $_POST['mal_data'] ?: null;
+        update_post_meta( $post->id, '_mal_data', $price );
     }
 
     /**
@@ -128,10 +128,10 @@ class MultipleAffiliateLinks
         <div style="display: flex; flex-wrap: wrap; width: 100%;">
         <?php foreach ($data as $button): $url = plugin_dir_url(__FILE__). 'dist/images/'.$button['type']. '.png'; ?>
             <div style="display: flex; width: 100%; justify-content: space-between; align-content: center; align-items: center; margin-bottom: 1rem;">
-                <div style="width: 120px;"><img src="<?php echo $url; ?>" alt="<?php echo $button['type']; ?>" /></div>
-                <div><?php echo wc_price($button['price']) ?></div>
+                <div style="width: 120px;"><img src="<?php echo esc_url($url); ?>" alt="<?php esc_attr_e($button['type']); ?>" /></div>
+                <div><?php esc_html_e(wc_price($button['price'])) ?></div>
                 <div>
-                    <a href="<?php echo $button['url']; ?>" target="_blank" class="single_add_to_cart_button button alt" style="margin-bottom: 0;"><?= isset($button['buttonText']) && !empty($button['buttonText']) ? $button['buttonText'] : $buttonText ?></a>
+                    <a href="<?php echo esc_url($button['url']); ?>" target="_blank" class="single_add_to_cart_button button alt" style="margin-bottom: 0;"><?php isset($button['buttonText']) && !empty($button['buttonText']) ? esc_html_e($button['buttonText']) : esc_html_e($buttonText) ?></a>
                 </div>
             </div>
         <?php endforeach; ?>
